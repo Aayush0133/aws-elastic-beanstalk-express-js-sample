@@ -1,37 +1,53 @@
 pipeline {
-    agent any // Use 'label' if you have a specific agent preference
+    agent any 
 
     stages {
         stage('Install Dependencies') {
-            steps {
-                docker.image('node:16').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                    sh 'npm install' 
+            agent {
+                docker {
+                    image 'node:16'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
+            }
+            steps {
+                sh 'npm install'
             }
         }
 
         stage('Build') {
-            steps {
-                docker.image('node:16').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                    sh 'npm run build' 
+            agent {
+                docker {
+                    image 'node:16'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
+            }
+            steps {
+                sh 'npm run build'
             }
         }
 
         stage('Test') {
-            steps {
-                docker.image('node:16').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                    sh 'npm test' 
+            agent {
+                docker {
+                    image 'node:16'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
+            }
+            steps {
+                sh 'npm test'
             }
         }
 
         stage('Security Scan') {
-            steps {
-                docker.image('node:16').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                    sh 'npm install -g snyk' 
-                    sh 'snyk test' 
+            agent {
+                docker {
+                    image 'node:16'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
+            }
+            steps {
+                sh 'npm install -g snyk'
+                sh 'snyk test'
             }
         }
     }
