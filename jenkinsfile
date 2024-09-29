@@ -1,0 +1,85 @@
+pipeline {
+    agent {
+        docker {
+            image 'node:16'  // Use Node 16 as the build agent
+            args '-u root:root'  // Run as root user to avoid permission issues
+        }
+    }
+    environment {
+        SNYK_TOKEN = credentials('snyk-api-token')  // Using the Snyk API token stored in Jenkins credentials
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Clone the repository where application resides
+                git 'https://github.com/Aayush0133/aws-elastic-beanstalk-express-js-sample.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                // Install project dependencies using npm
+                sh 'npm install --save'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                // Run tests defined in package.json (ensure you have a "test" script)
+                sh 'npm test'
+            }
+        }
+        stage('Security Scan with Snyk') {
+            steps {
+                // Install Snyk CLI tool globally
+                sh 'npm install -g snyk'
+                // Authenticate with Snyk using the API token
+                sh 'snyk auth $SNYK_TOKEN'
+                // Perform a security scan using Snyk
+                sh 'snyk test'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                // Build a Docker image for the Node.js app using the Dockerfile
+                script {
+                    docker.build('node-app-image:latest')
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                // Optional: Push the built Docker image to a container registry (e.g., Docker Hub, AWS ECR)
+                // Ensure you have Docker credentials set up in Jenkins
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials-id') {
+                        docker.image('node-app-image:latest').push('latest')
+                    }
+                }
+            }
+        }
+        stage('Deploy to AWS Elastic Beanstalk') {
+            steps {
+                // AWS EB CLI commands to deploy the application to Elastic Beanstalk
+                sh '''
+                # Install EB CLI if not available
+                pip install --upgrade awsebcli
+                # Initialize and deploy to Elastic Beanstalk
+                eb init -p node.js --region YOUR-AWS-REGION YOUR-APPLICATION-NAME
+                eb deploy
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            // Archive the logs and test results for every run
+            archiveArtifacts artifacts: 'logs/*.log', allowEmptyArchive: true
+            junit '**/test-results.xml'  // Capture test reports
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
