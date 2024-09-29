@@ -1,24 +1,30 @@
 pipeline {
-  agent { docker { image 'node:16' } } // Node.js 16 environment
+  agent { docker { image 'node:16' } }
 
   stages {
     stage('Install Dependencies') {
       steps {
-        sh 'npm install'  // Install dependencies
+        sh 'npm install'
       }
     }
 
     stage('Build') {
       steps {
-        sh 'npm run build'  // Build the application
+        sh 'npm run build'
       }
     }
 
     stage('Test') {
       steps {
-        sh 'npm test'  // Run tests
+        sh 'npm test'
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        sh 'npm install -g snyk'
+        sh 'snyk test'
       }
     }
   }
 }
-
