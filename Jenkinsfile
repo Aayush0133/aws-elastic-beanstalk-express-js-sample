@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:16'   // Use Node.js 16 Docker image
-            args '-v /var/run/docker.sock:/var/run/docker.sock'  // Mount Docker socket for container use if needed
-        }
-    }
+    agent any  // Use any available Jenkins agent
     stages {
         stage('Install Dependencies') {
             steps {
@@ -24,7 +19,7 @@ pipeline {
         stage('Security Scan') {
             steps {
                 sh 'npm install -g snyk'  // Install Snyk globally
-                sh 'snyk test'  // Run a security scan on dependencies
+                sh 'snyk test'  // Run a security scan
             }
         }
     }
