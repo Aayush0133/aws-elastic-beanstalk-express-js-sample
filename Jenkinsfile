@@ -10,13 +10,13 @@ pipeline {
 
     stage('Build') {
       steps {
-        sh 'npm run build'  // Build the application (if applicable)
+        sh 'npm run build'  // Build the Node.js project
       }
     }
 
     stage('Test') {
       steps {
-        sh 'npm test'  // Run tests (if defined in package.json)
+        sh 'npm test'  // Run unit tests for the project.
       }
     }
 
