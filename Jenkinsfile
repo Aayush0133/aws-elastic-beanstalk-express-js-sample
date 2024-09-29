@@ -1,30 +1,30 @@
 pipeline {
     agent {
-        any {
-            image 'node:16'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        docker {
+            image 'node:16'   // Use Node.js 16 Docker image
+            args '-v /var/run/docker.sock:/var/run/docker.sock'  // Mount Docker socket for container use if needed
         }
     }
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'  // Install the project dependencies from package.json
+                sh 'npm install'  // Install project dependencies
             }
         }
         stage('Build') {
             steps {
-                sh 'npm run build'  // Run the build script (if defined in package.json)
+                sh 'npm run build'  // Run the build process
             }
         }
         stage('Test') {
             steps {
-                sh 'npm test'  // Run the test script (if defined in package.json)
+                sh 'npm test'  // Run tests
             }
         }
         stage('Security Scan') {
             steps {
                 sh 'npm install -g snyk'  // Install Snyk globally
-                sh 'snyk test'  // Run Snyk to check for vulnerabilities in dependencies
+                sh 'snyk test'  // Run a security scan on dependencies
             }
         }
     }
