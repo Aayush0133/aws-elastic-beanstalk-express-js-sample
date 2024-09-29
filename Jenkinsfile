@@ -2,16 +2,21 @@ pipeline {
     agent {
         docker {
             image 'node:16'
-            args '-u root:root'
+            args '-v /var/run/docker.sock:/var/run/docker.sock' // Correctly close the args string
         }
     }
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'npm install --save'
+                sh 'npm install'
             }
         }
-        stage('Run Tests') {
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+        stage('Test') {
             steps {
                 sh 'npm test'
             }
@@ -19,24 +24,8 @@ pipeline {
         stage('Security Scan') {
             steps {
                 sh 'npm install -g snyk'
-                sh 'snyk auth $SNYK_TOKEN'
                 sh 'snyk test'
             }
-        }
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build('node-app-image:latest')
-                }
-            }
-        }
-    }
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
