@@ -1,53 +1,42 @@
 pipeline {
     agent {
         docker {
-            image 'node:16'  // Use Node.js 16 Docker image as the build agent
-            args '-u root:root'  // Run as root to avoid permission issues when installing dependencies
+            image 'node:16'
+            args '-u root:root'
         }
-    }
-    environment {
-        SNYK_TOKEN = credentials('snyk-api-token')  // Load Snyk API token from Jenkins credentials
     }
     stages {
-        stage('Checkout Code') {
-            steps {
-                // Clone the repository from GitHub
-                git branch: 'main', url: 'https://github.com/Aayush0133/aws-elastic-beanstalk-express-js-sample.git'
-            }
-        }
         stage('Install Dependencies') {
             steps {
-                // Install project dependencies using npm
                 sh 'npm install --save'
             }
         }
         stage('Run Tests') {
             steps {
-                // Run tests (if available in the package.json file)
                 sh 'npm test'
             }
         }
         stage('Security Scan') {
             steps {
-                // Install the Snyk CLI tool globally
                 sh 'npm install -g snyk'
-                // Authenticate with Snyk using the Snyk token
                 sh 'snyk auth $SNYK_TOKEN'
-                // Perform a security scan of project dependencies
                 sh 'snyk test'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('node-app-image:latest')
+                }
             }
         }
     }
     post {
-        always {
-            // Always archive any build logs, even if the build fails
-            archiveArtifacts artifacts: 'logs/*.log', allowEmptyArchive: true
-        }
         success {
-            echo 'Build and test succeeded!'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Build failed!'
+            echo 'Pipeline failed!'
         }
     }
 }
