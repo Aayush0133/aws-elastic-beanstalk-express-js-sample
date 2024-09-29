@@ -1,4 +1,5 @@
 pipeline {
+<<<<<<< HEAD
     agent {
         docker {
             image 'node:16'
@@ -32,4 +33,34 @@ pipeline {
             }
         }
     }
+=======
+  agent { docker { image 'node:16' } }
+
+  stages {
+    stage('Install Dependencies') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'npm run build'
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh 'npm test'
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        sh 'npm install -g snyk'
+        sh 'snyk test'
+      }
+    }
+  }
+>>>>>>> 1acaea72187f97fb0283f465a9153a2e2200ad36
 }
